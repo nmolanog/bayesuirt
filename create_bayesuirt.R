@@ -2,10 +2,9 @@ rm(list=ls())
 library(devtools)
 library(roxygen2)
 library(here)
-#setwd("/media/nicolas/DATOS/Rprojects")
-create("bayesuirt")
+#setwd("/media/nicolas/DATOS/Rprojects/bayesuirt")
+#create("bayesuirt")
 ###insert file with functions in R folder
-setwd("./bayesuirt")
 document()
 
 setwd("..")
