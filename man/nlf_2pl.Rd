@@ -18,13 +18,21 @@ nlf_2pl(X, psi, z, theta, nitems)
 \item{nitems}{integer especifying the number of items. It is used to separate parameters as psi[1:nitems] and psi[(nitems+1):(2*nitems)]}
 }
 \value{
-add style to sheet in wb
+a double vector
 }
 \description{
 this functions is the non-linear function associated with the 2pl uirt model as estated in molano thesis.
 }
 \examples{
-##none for now
+data("test_data")
+temp<-uirt_DM(test_data,"id")
+nitems<-ncol(temp$X)
+nind<-ncol(temp$Z)
+alpha<-runif(nitems,0.6,1.5) ##simulation of discrimination parameters
+beta<-runif(nitems,-2.4,2.4) ##simulation of dificulty parameters
+theta<-rnorm(nind) ##simulation of random effects
+psi<-c(-alpha*beta,log(alpha)) ###vector of parameters based on alpha and beta
+res<-nlf_2pl(temp$X,psi,temp$Z,theta,nitems) ###nonlinear function evaluated at given values
 }
 \keyword{a}
 \keyword{reals}
