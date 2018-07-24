@@ -28,6 +28,5 @@ data("test_data")
 temp<-uirt_DM(test_data,"id")
 }
 \keyword{a}
-\keyword{reals}
+\keyword{double}
 \keyword{vector}
-\keyword{with}

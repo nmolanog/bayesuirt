@@ -10,7 +10,7 @@
 #'   \item X: desing matrix indexing each value of Y to the corresponding item.
 #'   \item Z: desing matrix indexing each value of Y to the corresponding individual.
 #' }
-#' @keywords a vector with reals
+#' @keywords a double vector
 #' @export
 #' @examples
 #' data("test_data")
@@ -54,3 +54,97 @@ uirt_DM<-function(dat,idname){
 nlf_2pl<-function(X,psi,z,theta,nitems){
   return(drop(X%*%psi[1:nitems]+exp(X%*%psi[(nitems+1):(2*nitems)])*(z%*%theta)))
 }
+
+#' link_2pl Function
+#'
+#' Inverse logit function, used as link in the 2pl model
+#' @param x a double vector
+#' @return a double vector
+#' @keywords logit
+#' @export
+#' @examples
+#' link_2pl(rnorm(10))
+link_2pl<-function(x){1/(1+exp(-x))}
+
+
+#' grad.fix_2pl Function
+#'
+#' derivative of nlf_2pl with respect to psi
+#' @param X  design matrix indexing each observation to corresponding item
+#' @param psi vector of item parameters
+#' @param z design matrix indexing each observation to corresponding individual
+#' @param theta vector of latent traits (i.e. random effects associated to individual level)
+#' @param nitems integer especifying the number of items. It is used to separate parameters as psi[1:nitems] and psi[(nitems+1):(2*nitems)]
+#' @return a double vector
+#' @keywords derivative
+#' @export
+#' @examples
+#' data("test_data")
+#' temp<-uirt_DM(test_data,"id")
+#' nitems<-ncol(temp$X)
+#' nind<-ncol(temp$Z)
+#' alpha<-runif(nitems,0.6,1.5) ##simulation of discrimination parameters
+#' beta<-runif(nitems,-2.4,2.4) ##simulation of dificulty parameters
+#' theta<-rnorm(nind) ##simulation of random effects
+#' psi<-c(-alpha*beta,log(alpha)) ###vector of parameters based on alpha and beta
+#' res<-grad.fix_2pl(temp$X,psi,temp$Z,theta,nitems) ###derivative of nlf_2pl with respect to psi evaluated at given values
+
+grad.fix_2pl<-function(X,psi,z,theta,nitems){
+  return(cbind(X,drop(exp(X%*%psi[(nitems+1):(2*nitems)])*(z%*%theta))*X))
+}
+
+#' grad.mix_2pl Function
+#'
+#' derivative of nlf_2pl with respect to theta
+#' @param X  design matrix indexing each observation to corresponding item
+#' @param psi vector of item parameters
+#' @param z design matrix indexing each observation to corresponding individual
+#' @param nitems integer especifying the number of items. It is used to separate parameters as psi[1:nitems] and psi[(nitems+1):(2*nitems)]
+#' @return a double vector
+#' @keywords derivative
+#' @export
+#' @examples
+#' data("test_data")
+#' temp<-uirt_DM(test_data,"id")
+#' nitems<-ncol(temp$X)
+#' nind<-ncol(temp$Z)
+#' alpha<-runif(nitems,0.6,1.5) ##simulation of discrimination parameters
+#' beta<-runif(nitems,-2.4,2.4) ##simulation of dificulty parameters
+#' theta<-rnorm(nind) ##simulation of random effects
+#' psi<-c(-alpha*beta,log(alpha)) ###vector of parameters based on alpha and beta
+#' res<-grad.mix_2pl(temp$X,psi,temp$Z,nitems) ###derivative of nlf_2pl with respect to theta evaluated at given values
+
+grad.mix_2pl<-function(X,psi,z,nitems){
+  return(drop(exp(X%*%psi[(nitems+1):(2*nitems)]))*z)
+}
+
+
+#' log_lik_2pl Function
+#'
+#' log likelihood function for 2pl
+#' @param y  vectorised test
+#' @param X  design matrix indexing each observation to corresponding item
+#' @param psi vector of item parameters
+#' @param z design matrix indexing each observation to corresponding individual
+#' @param theta vector of latent traits (i.e. random effects associated to individual level)
+#' @param nitems integer especifying the number of items. It is used to separate parameters as psi[1:nitems] and psi[(nitems+1):(2*nitems)]
+#' @return a double atomic vector
+#' @keywords log likelihood
+#' @export
+#' @examples
+#' data("test_data")
+#' temp<-uirt_DM(test_data,"id")
+#' nitems<-ncol(temp$X)
+#' nind<-ncol(temp$Z)
+#' alpha<-runif(nitems,0.6,1.5) ##simulation of discrimination parameters
+#' beta<-runif(nitems,-2.4,2.4) ##simulation of dificulty parameters
+#' theta<-rnorm(nind) ##simulation of random effects
+#' psi<-c(-alpha*beta,log(alpha)) ###vector of parameters based on alpha and beta
+#' res<-log_lik_2pl(temp$Y,temp$X,psi,temp$Z,theta,nitems) ###2pl log likelihood evaluated at given values
+
+log_lik_2pl<-function(y,X,psi,z,theta,nitems){
+  eta_y<-nlf_2pl(X,psi,z,theta,nitems)
+  mu<-link_2pl(eta_y)
+  return(sum(dbinom(y,1,mu,log=T)))
+}
+
