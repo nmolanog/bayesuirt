@@ -55,7 +55,7 @@ nlf_2pl<-function(X,psi,z,theta,nitems){
   return(drop(X%*%psi[1:nitems]+exp(X%*%psi[(nitems+1):(2*nitems)])*(z%*%theta)))
 }
 
-#' link_2pl Function
+#' inv_link_2pl Function
 #'
 #' Inverse logit function, used as link in the 2pl model
 #' @param x a double vector
@@ -63,8 +63,8 @@ nlf_2pl<-function(X,psi,z,theta,nitems){
 #' @keywords logit
 #' @export
 #' @examples
-#' link_2pl(rnorm(10))
-link_2pl<-function(x){1/(1+exp(-x))}
+#' inv_link_2pl(rnorm(10))
+inv_link_2pl<-function(x){1/(1+exp(-x))}
 
 
 #' grad.fix_2pl Function
@@ -144,7 +144,7 @@ grad.mix_2pl<-function(X,psi,z,nitems){
 
 log_lik_2pl<-function(y,X,psi,z,theta,nitems){
   eta_y<-nlf_2pl(X,psi,z,theta,nitems)
-  mu<-link_2pl(eta_y)
+  mu<-inv_link_2pl(eta_y)
   return(sum(dbinom(y,1,mu,log=T)))
 }
 
@@ -223,7 +223,7 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
     ########
     X_hat<-grad.fix_2pl(X,psi.c[i-1,],Z,theta.c[i-1,],nitems)
     eta<-nlf_2pl(X,psi.c[i-1,],Z,theta.c[i-1,],nitems)
-    mu<-link_2pl(eta)
+    mu<-inv_link_2pl(eta)
     Vy<-((1+exp(eta))^2)*exp(-eta)
     y1_hat<-drop(X_hat%*%c(psi.c[i-1,]))+Vy*(Y-mu)
 
@@ -233,7 +233,7 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
 
     X_hat.p<-grad.fix_2pl(X,psi.p,Z,theta.c[i-1,],nitems)
     eta.p<-nlf_2pl(X,psi.p,Z,theta.c[i-1,],nitems)
-    mu.p<-link_2pl(eta.p)
+    mu.p<-inv_link_2pl(eta.p)
     Vy.p<-((1+exp(eta.p))^2)*exp(-eta.p)
     y1_hat.p<-drop(X_hat.p%*%psi.p)+Vy.p*(Y-mu.p)
 
@@ -255,7 +255,7 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
     ########
     Z_hat<-grad.mix_2pl(X,psi.c[i,],Z,nitems)
     eta_t<-nlf_2pl(X,psi.c[i,],Z,theta.c[i-1,],nitems)
-    mu_t<-link_2pl(eta_t)
+    mu_t<-inv_link_2pl(eta_t)
     Vy_t<-((1+exp(eta_t))^2)*exp(-eta_t)
     yt_hat<-drop(Z_hat%*%theta.c[i-1,]+Vy_t*(Y-mu_t))
 
@@ -264,7 +264,7 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
     theta.p<-drop(rnorm(nind,g.,sqrt(G.)))#####proposal
 
     eta_t.p<-nlf_2pl(X,psi.c[i,],Z,theta.p,nitems)
-    mu_t.p<-link_2pl(eta_t.p)
+    mu_t.p<-inv_link_2pl(eta_t.p)
     Vy_t.p<-((1+exp(eta_t.p))^2)*exp(-eta_t.p)
     yt_hat.p<-drop(Z_hat%*%theta.p+Vy_t.p*(Y-mu_t.p))
 
