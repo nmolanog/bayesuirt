@@ -224,21 +224,21 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
     X_hat<-grad.fix_2pl(X,psi.c[i-1,],Z,theta.c[i-1,],nitems)
     eta<-nlf_2pl(X,psi.c[i-1,],Z,theta.c[i-1,],nitems)
     mu<-inv_link_2pl(eta)
-    Vy<-((1+exp(eta))^2)*exp(-eta)
-    y1_hat<-drop(X_hat%*%c(psi.c[i-1,]))+Vy*(Y-mu)
+    hprim_hinv<-((1+exp(eta))^2)*exp(-eta)
+    y1_hat<-drop(X_hat%*%c(psi.c[i-1,]))+hprim_hinv*(Y-mu)
 
-    B.<-solve(B.inv+t(X_hat)%*%(X_hat/Vy))
-    b.<-drop(B.%*%(B.inv_b+t(X_hat)%*%(y1_hat/Vy)))
+    B.<-solve(B.inv+t(X_hat)%*%(X_hat/hprim_hinv))
+    b.<-drop(B.%*%(B.inv_b+t(X_hat)%*%(y1_hat/hprim_hinv)))
     psi.p<-drop(mvtnorm::rmvnorm(1,b.,B.))#####proposal
 
     X_hat.p<-grad.fix_2pl(X,psi.p,Z,theta.c[i-1,],nitems)
     eta.p<-nlf_2pl(X,psi.p,Z,theta.c[i-1,],nitems)
     mu.p<-inv_link_2pl(eta.p)
-    Vy.p<-((1+exp(eta.p))^2)*exp(-eta.p)
-    y1_hat.p<-drop(X_hat.p%*%psi.p)+Vy.p*(Y-mu.p)
+    hprim_hinv.p<-((1+exp(eta.p))^2)*exp(-eta.p)
+    y1_hat.p<-drop(X_hat.p%*%psi.p)+hprim_hinv.p*(Y-mu.p)
 
-    B.p<-solve(B.inv+t(X_hat.p)%*%(X_hat.p/Vy.p))
-    b.p<-drop(B.p%*%(B.inv_b+t(X_hat.p)%*%(y1_hat.p/Vy.p)))
+    B.p<-solve(B.inv+t(X_hat.p)%*%(X_hat.p/hprim_hinv.p))
+    b.p<-drop(B.p%*%(B.inv_b+t(X_hat.p)%*%(y1_hat.p/hprim_hinv.p)))
 
     r1<-exp(sapply(1:nitems,FUN=function(j){mvtnorm::dmvnorm(psi.p[c(j,nitems+j)],b[c(j,nitems+j)],B[c(j,nitems+j),c(j,nitems+j)],log=T)
       -mvtnorm::dmvnorm(psi.c[i-1,c(j,nitems+j)],b[c(j,nitems+j)],B[c(j,nitems+j),c(j,nitems+j)],log=T)}) +
@@ -256,20 +256,20 @@ mh_gibbs_2pl<-function(dat,idname,psi0,theta0,B=diag(c(rep(9,dim(X)[2]),rep(1,di
     Z_hat<-grad.mix_2pl(X,psi.c[i,],Z,nitems)
     eta_t<-nlf_2pl(X,psi.c[i,],Z,theta.c[i-1,],nitems)
     mu_t<-inv_link_2pl(eta_t)
-    Vy_t<-((1+exp(eta_t))^2)*exp(-eta_t)
-    yt_hat<-drop(Z_hat%*%theta.c[i-1,]+Vy_t*(Y-mu_t))
+    hprim_hinv_t<-((1+exp(eta_t))^2)*exp(-eta_t)
+    yt_hat<-drop(Z_hat%*%theta.c[i-1,]+hprim_hinv_t*(Y-mu_t))
 
-    G.<-1/diag((G+t(Z_hat)%*%(Z_hat/Vy_t)))
-    g.<-drop(G.*(t(Z_hat)%*%(yt_hat/Vy_t)))
+    G.<-1/diag((G+t(Z_hat)%*%(Z_hat/hprim_hinv_t)))
+    g.<-drop(G.*(t(Z_hat)%*%(yt_hat/hprim_hinv_t)))
     theta.p<-drop(rnorm(nind,g.,sqrt(G.)))#####proposal
 
     eta_t.p<-nlf_2pl(X,psi.c[i,],Z,theta.p,nitems)
     mu_t.p<-inv_link_2pl(eta_t.p)
-    Vy_t.p<-((1+exp(eta_t.p))^2)*exp(-eta_t.p)
-    yt_hat.p<-drop(Z_hat%*%theta.p+Vy_t.p*(Y-mu_t.p))
+    hprim_hinv_t.p<-((1+exp(eta_t.p))^2)*exp(-eta_t.p)
+    yt_hat.p<-drop(Z_hat%*%theta.p+hprim_hinv_t.p*(Y-mu_t.p))
 
-    G.p<-1/(diag(G+t(Z_hat)%*%(Z_hat/Vy_t.p)))
-    g.p<-drop(G.p*(t(Z_hat)%*%(yt_hat.p/Vy_t.p)))
+    G.p<-1/(diag(G+t(Z_hat)%*%(Z_hat/hprim_hinv_t.p)))
+    g.p<-drop(G.p*(t(Z_hat)%*%(yt_hat.p/hprim_hinv_t.p)))
 
     r2<-exp(dnorm(theta.p,0,sqrt(diag(G)),log=T)-dnorm(theta.c[i-1,],0,sqrt(diag(G)),log=T)+
               tapply(dbinom(Y,1,mu_t.p,log =T)-dbinom(Y,1,mu_t,log =T),id,sum)+
