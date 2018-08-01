@@ -2,7 +2,7 @@
 
 export(grad.fix_2pl)
 export(grad.mix_2pl)
-export(link_2pl)
+export(inv_link_2pl)
 export(log_lik_2pl)
 export(mh_gibbs_2pl)
 export(nlf_2pl)
