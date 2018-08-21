@@ -10,8 +10,8 @@ uirt_DM<-function(dat,idname){
   return(res)
 }
 
-nitems<-7
-nind<-100
+nitems<-50
+nind<-500
 sort(alpha_o<-runif(nitems,0.6,1.5))
 sort(beta_o<-runif(nitems,-2.4,2.4))
 d_o<- -alpha_o*beta_o
@@ -134,4 +134,14 @@ sol_1(1:nitems)
 sol_2(1:nitems)
 sol_3(1:nitems)
 sol_4(1:nitems,psi.p,nitems,psi.c,b,B,i)
-microbenchmark(sol_1(1:nitems),sol_2(1:nitems),sol_3(1:nitems),sol_4(1:nitems,psi.p,nitems,psi.c,b,B,i),times =100)
+
+num_cores<-detectCores()-1
+cl<-makeCluster(num_cores)
+microbenchmark(sol_1(1:nitems),
+               sol_2(1:nitems),
+               sol_3(1:nitems),
+               sol_4(1:nitems,psi.p,nitems,psi.c,b,B,i),
+               parSapply(cl,1:nitems,FUN=function(j,psi.p,nitems,psi.c,b,B,i){mvtnorm::dmvnorm(psi.p[c(j,nitems+j)],b[c(j,nitems+j)],B[c(j,nitems+j),c(j,nitems+j)],log=T)
+  -mvtnorm::dmvnorm(psi.c[i-1,c(j,nitems+j)],b[c(j,nitems+j)],B[c(j,nitems+j),c(j,nitems+j)],log=T)},psi.p=psi.p,nitems=nitems,psi.c=psi.c,b=b,B=B,i=i),
+  times =10)
+stopCluster(cl)
